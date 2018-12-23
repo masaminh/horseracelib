@@ -1,27 +1,32 @@
 """netkeiba.comへのアクセス関数群."""
-import datetime
 import re
-import time
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, parse_qs
 
-import requests
 from bs4 import BeautifulSoup
 
+from horseracelib import utility
 from horseracelib.utility import HorseResult
 
 
 class Access:
     """netkeiba.comへのアクセスクラス."""
 
-    def __init__(self):
+    def __init__(self, *, getter=None):
         """コンストラクタ."""
-        self._lastaccess = datetime.datetime(2000, 1, 1)
+        if getter:
+            self._getter = getter
+        else:
+            self._getter = utility.HttpGetter()
 
     def get_race_result(self, date, course, raceno):
         """レース結果を取得する (本日分のみ)."""
         url = self._get_raceurl(
             'https://race.netkeiba.com/', date, course, raceno)
-        response = self._requests_get(url)
+
+        if url is None:
+            return None
+
+        response = self._getter.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
         trs = soup.find('table', summary='レース結果').find_all('tr')
 
@@ -40,7 +45,7 @@ class Access:
 
         params = {'pid': 'race_list_sub', 'id': f'c{date.strftime("%m%d")}'}
 
-        response = self._requests_get(urlbase, params=params)
+        response = self._getter.get(urlbase, params=params)
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -48,23 +53,12 @@ class Access:
         hrefs = (x.find('a').get('href')
                  for x in soup.find_all('div', class_='racename'))
         reg = re.compile(
-            f'id=.{date.year:04}{courses[course]:02}....{raceno:02}')
+            f'.{date.year:04}{courses[course]:02}....{raceno:02}')
         for href in hrefs:
-            if reg.search(href):
+            query_params = parse_qs(urlparse(href).query)
+
+            if query_params['pid'][0] == 'race' and reg.search(query_params['id'][0]):
                 url = urljoin(urlbase, href)
                 break
 
-        if url is None:
-            return None
-
         return url
-
-    def _requests_get(self, url, params=None):
-        delta = datetime.datetime.now() - self._lastaccess
-
-        if delta.seconds < 1:
-            time.sleep(1 - delta.seconds)
-
-        response = requests.get(url, params=params)
-        self._lastaccess = datetime.datetime.now()
-        return response

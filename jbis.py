@@ -1,28 +1,29 @@
 """JBISへのアクセス関数群."""
-import re
 import datetime
-from collections import namedtuple
+import re
 
-import requests
 from bs4 import BeautifulSoup
+
+from horseracelib import utility
 
 
 class Access:
     """JBISへのアクセスクラス."""
 
-    def __init__(self):
+    def __init__(self, *, getter=None):
         """コンストラクタ."""
+        if getter:
+            self._getter = getter
+        else:
+            self._getter = utility.HttpGetter()
 
     def iter_sire_entries(self, horseid):
         """指定されたIDの種牡馬の産駒の出走予定を返す."""
-        response = requests.get(
+        response = self._getter.get(
             f'https://www.jbis.or.jp/horse/{horseid}/sire/entry/')
         soup = BeautifulSoup(response.content, "html.parser")
         h2s = soup.find_all('h2')
         today = datetime.date.today()
-
-        Entry = namedtuple(
-            'Entry', ['date', 'course', 'raceno', 'racename', 'horsename'])
 
         for h2_element in h2s:
             match = re.fullmatch(
@@ -34,6 +35,6 @@ class Access:
 
             for tr_element in h2_element.find_next('tbody').find_all('tr'):
                 tds = tr_element.find_all('td')
-                entry = Entry(date, tr_element.find('th').string,
-                              int(tds[0].string), tds[1].text.strip(), tds[7].string)
+                entry = utility.HorseEntry(date, tr_element.find('th').string,
+                                           int(tds[0].string), tds[1].text.strip(), tds[7].string)
                 yield entry

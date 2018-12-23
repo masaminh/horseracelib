@@ -1,19 +1,19 @@
 """keiba.go.jpへのアクセス関数群."""
-import datetime
-import time
-
-import requests
 from bs4 import BeautifulSoup
 
+from horseracelib import utility
 from horseracelib.utility import HorseResult
 
 
 class Access:
     """keiba.go.jpへのアクセスクラス."""
 
-    def __init__(self):
+    def __init__(self, *, getter=None):
         """コンストラクタ."""
-        self._lastaccess = datetime.datetime(2000, 1, 1)
+        if getter:
+            self._getter = getter
+        else:
+            self._getter = utility.HttpGetter()
 
     def get_race_result(self, date, course, raceno):
         """レース結果を取得する."""
@@ -26,14 +26,8 @@ class Access:
         params = {'k_raceDate': date.strftime('%Y/%m/%d'),
                   'k_raceNo': raceno, 'k_babaCode': courses[course]}
 
-        delta = datetime.datetime.now() - self._lastaccess
-
-        if delta.seconds < 1:
-            time.sleep(1 - delta.seconds)
-
-        response = requests.get(
+        response = self._getter.get(
             'http://www2.keiba.go.jp/KeibaWeb/TodayRaceInfo/RaceMarkTable', params=params)
-        self._lastaccess = datetime.datetime.now()
 
         soup = BeautifulSoup(response.content, "html.parser")
 
@@ -44,7 +38,8 @@ class Access:
             if order == '':
                 order = tds[12].string
 
-            return HorseResult(order=order, name=tds[3].text.strip(), poplar=tds[14].string)
+            poplar = tds[14].string.replace('\xa0', '-')
+            return HorseResult(order=order, name=tds[3].text.strip(), poplar=poplar)
 
         return [get_horseresult(tr)
                 for tr in soup.find('tr', class_='dbitem').findNextSiblings('tr')]
