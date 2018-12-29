@@ -38,3 +38,11 @@ class Access:
                 entry = utility.HorseEntry(date, tr_element.find('th').string,
                                            int(tds[0].string), tds[1].text.strip(), tds[7].string)
                 yield entry
+
+    def get_horse_info(self, horseid):
+        """馬情報を取得する."""
+        response = self._getter.get(
+            f'https://www.jbis.or.jp/horse/{horseid}/')
+        soup = BeautifulSoup(response.content, 'html.parser')
+        h1_element = soup.find('h1')
+        return utility.HorseInfo(name=h1_element.text)

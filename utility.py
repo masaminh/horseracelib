@@ -5,6 +5,7 @@ from collections import namedtuple
 
 import requests
 
+HorseInfo = namedtuple('HorseInfo', ['name'])
 HorseResult = namedtuple('HorseResult', ['order', 'name', 'poplar'])
 HorseEntry = namedtuple(
     'HorseEntry', ['date', 'course', 'raceno', 'racename', 'horsename'])
