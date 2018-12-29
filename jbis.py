@@ -40,9 +40,8 @@ class Access:
                 yield entry
 
     def get_horse_info(self, horseid):
-        """馬情報を取得する."""
+        """指定されたIDの馬の情報を返す."""
         response = self._getter.get(
             f'https://www.jbis.or.jp/horse/{horseid}/')
-        soup = BeautifulSoup(response.content, 'html.parser')
-        h1_element = soup.find('h1')
-        return utility.HorseInfo(name=h1_element.text)
+        soup = BeautifulSoup(response.content, "html.parser")
+        return utility.HorseInfo(name=soup.h1.text)
