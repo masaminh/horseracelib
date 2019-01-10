@@ -1,8 +1,8 @@
 """keiba.go.jpへのアクセス関数群."""
 from bs4 import BeautifulSoup
 
-from horseracelib import utility
-from horseracelib.utility import HorseResult
+from . import utility
+from .utility import HorseResult
 
 
 class Access:

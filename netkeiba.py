@@ -4,8 +4,8 @@ from urllib.parse import urljoin, urlparse, parse_qs
 
 from bs4 import BeautifulSoup
 
-from horseracelib import utility
-from horseracelib.utility import HorseResult
+from . import utility
+from .utility import HorseResult
 
 
 class Access:

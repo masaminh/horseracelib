@@ -4,7 +4,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from horseracelib import utility
+from . import utility
 
 
 class Access:
