@@ -26,17 +26,17 @@ class Access:
         today = datetime.date.today()
 
         for h2_element in h2s:
-            match = re.fullmatch(
-                r"\s?([0-9]{1,2})月\s?([0-9]{1,2})日出走分", h2_element.string)
-            month = int(match.group(1))
-            day = int(match.group(2))
-            date = datetime.date(
-                today.year + (0 if today.month <= month else 1), month, day)
-
             for tr_element in h2_element.find_next('tbody').find_all('tr'):
                 tds = tr_element.find_all('td')
+                racename_element = tds[1].a
+                racename = racename_element.text.strip()
+                raceurl = racename_element.get('href')
+                match = re.fullmatch(
+                    r'/race/(\d{4})(\d{2})(\d{2})/\d+/\d+.html', raceurl)
+                date = datetime.date(
+                    int(match.group(1)), int(match.group(2)), int(match.group(3)))
                 entry = utility.HorseEntry(date, tr_element.find('th').string,
-                                           int(tds[0].string), tds[1].text.strip(), tds[7].string)
+                                           int(tds[0].string), racename, tds[7].string)
                 yield entry
 
     def get_horse_info(self, horseid):
