@@ -4,7 +4,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from horseracelib import utility
+from . import utility
 
 
 class Access:
@@ -23,7 +23,6 @@ class Access:
             f'https://www.jbis.or.jp/horse/{horseid}/sire/entry/')
         soup = BeautifulSoup(response.content, "html.parser")
         h2s = soup.find_all('h2')
-        today = datetime.date.today()
 
         for h2_element in h2s:
             for tr_element in h2_element.find_next('tbody').find_all('tr'):
