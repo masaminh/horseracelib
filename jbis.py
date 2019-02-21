@@ -184,7 +184,7 @@ class Access:
                 td_elements[10].string)
             result_dic['weight'] = utility.int_or_none(
                 list(td_elements[11].strings)[0])
-            result_dic['time'] = _get_timedelta(td_elements[5].string)
+            result_dic['time'] = _get_timedelta(td_elements[5].text)
             result_dic['url'] = urljoin(url, td_elements[2].a.get('href'))
             result_dic['no'] = int(td_elements[1].string)
             return utility.HorseResult(**result_dic)
