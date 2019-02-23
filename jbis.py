@@ -240,9 +240,12 @@ class Access:
                 r_dic['url'] = None
 
             r_dic['racename'] = td_elements[1].text.strip()
-            r_dic['tracktype'] = self.tracktypes[td_elements[2].string]
+            r_dic['tracktype'] = self._get_tracktype(
+                td_elements[2].string)
             r_dic['distance'] = int(td_elements[3].string)
             r_dic['condition'] = td_elements[4].string.strip()
+            if r_dic['condition'] == '不明':
+                r_dic['condition'] = None
             r_dic['horsenum'] = int(td_elements[5].string)
             race = utility.RaceInfo(**r_dic)
 
@@ -286,9 +289,13 @@ class Access:
         return date, course
 
     def _get_tracktype_distance(self, track_string):
-        tracktype = self.tracktypes[track_string[0]]
+        tracktype = self._get_tracktype(track_string[0])
         distance = int(track_string[1:-1])
         return tracktype, distance
+
+    def _get_tracktype(self, track_string):
+        if track_string in self.tracktypes:
+            return self.tracktypes[track_string]
 
 
 def _get_timedelta(time: str) -> datetime.timedelta:
