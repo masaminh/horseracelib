@@ -32,7 +32,16 @@ class Access:
 
         def get_horseresult(tr_element):
             tds = tr_element.find_all('td')
-            return HorseResult(tds[0].string, tds[3].a.string, tds[9].string)
+            h_dict = dict()
+            h_dict['order'] = tds[0].string
+            if h_dict['order'] is None:
+                if tds[8].string == '取消':
+                    h_dict['order'] = '出走取消'
+                else:
+                    h_dict['order'] = '*'
+            h_dict['name'] = tds[3].a.string
+            h_dict['poplar'] = tds[9].string
+            return HorseResult(**h_dict)
 
         return [get_horseresult(tr) for (i, tr) in enumerate(trs) if i > 0]
 
