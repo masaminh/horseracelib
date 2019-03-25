@@ -92,6 +92,19 @@ class Access:
             url = urljoin(urlbase, href)
             yield utility.RaceCalendar(date, course, url)
 
+    def iter_races(self, date, course):
+        """指定した日、開催場のレース一覧を取得する.
+
+        Arguments:
+            date {datetime.date} -- 開催日
+            course {str} -- 開催場
+
+        """
+        url = urljoin(
+            'https://www.jbis.or.jp/',
+            f'/race/calendar/{date.strftime("%Y%m%d")}/{self.coursename_id[course]}/')
+        return self.iter_races_by_url(url)
+
     def iter_races_by_url(self, url):
         """
         URLで指定した日、開催場のレース一覧を取得する.
