@@ -120,31 +120,66 @@ class Access:
             レース情報.
 
         """
-        raceinfo = dict()
-        raceinfo['date'], raceinfo['course'] = self._get_date_course_from_url(
-            url)
-
         response = self._getter.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
-        trs = soup.find('tbody').find_all('tr')
 
-        for tr_element in trs:
+        def get_raceinfo_future(tr_element):
             th_element = tr_element.th
 
             if not th_element:
-                continue
+                return None
 
+            tds = tr_element.find_all('td')
+            racename_link = tds[1].a
+            if racename_link is None:
+                return None
+
+            raceinfo = dict()
+            raceinfo['date'], raceinfo['course'] = (
+                self._get_date_course_from_url(url))
             raceinfo['raceno'] = int(th_element.string)
+            raceinfo['racename'] = racename_link.string
+            raceinfo['url'] = urljoin(url, racename_link.get('href'))
+            raceinfo['tracktype'] = self._get_tracktype(tds[2].string)
+            raceinfo['distance'] = int(tds[3].string[:-1])
+            raceinfo['horsenum'] = int(tds[4].string)
+            return raceinfo
+
+        def get_raceinfo_past(tr_element):
+            th_element = tr_element.th
+
+            if not th_element:
+                return None
+
             tds = tr_element.find_all('td')
             racename_link = tds[0].a
             if racename_link is None:
-                continue
+                return None
 
+            raceinfo = dict()
+            raceinfo['date'], raceinfo['course'] = (
+                self._get_date_course_from_url(url))
+            raceinfo['raceno'] = int(th_element.string)
             raceinfo['racename'] = racename_link.string
             raceinfo['url'] = urljoin(url, racename_link.get('href'))
             raceinfo['tracktype'], raceinfo['distance'] = (
                 self._get_tracktype_distance(tds[1].string))
             raceinfo['horsenum'] = int(tds[2].string)
+            return raceinfo
+
+        ths = soup.find('thead').find('tr').find_all('th')
+        if ths[1].string == '発走時刻':
+            func = get_raceinfo_future
+        else:
+            func = get_raceinfo_past
+
+        trs = soup.find('tbody').find_all('tr')
+
+        for tr_element in trs:
+            raceinfo = func(tr_element)
+            if raceinfo is None:
+                continue
+
             yield utility.RaceInfo(**raceinfo)
 
     def get_race_result_by_url(self, url):
