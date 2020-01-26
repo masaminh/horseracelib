@@ -21,7 +21,7 @@ class Access:
     def get_race_result(self, date, course, raceno):
         """レース結果を取得する (本日分のみ)."""
         url = self._get_raceurl(
-            'https://race.netkeiba.com/', date, course, raceno)
+            'https://oldrace.netkeiba.com/', date, course, raceno)
 
         if url is None:
             return None
